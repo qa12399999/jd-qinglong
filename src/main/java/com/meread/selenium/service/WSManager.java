@@ -89,7 +89,7 @@ public class WSManager implements DisposableBean {
             }
 
             for (String s : removeChromeSessionIds) {
-                driverManager.releaseWebDriver(s,false);
+                driverManager.releaseWebDriver(s,true);
             }
 
             doPushScreen();

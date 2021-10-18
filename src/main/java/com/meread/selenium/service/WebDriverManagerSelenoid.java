@@ -276,7 +276,7 @@ public class WebDriverManagerSelenoid extends BaseWebDriverManager {
     @Override
     public void createChrome() {
         ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-        int create = CAPACITY == 1 ? 1 : (CAPACITY - chromes.size()) / 2;
+        int create = CAPACITY - chromes.size();
         CountDownLatch cdl = new CountDownLatch(create);
         for (int i = 0; i < create; i++) {
             executorService.execute(() -> {
