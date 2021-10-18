@@ -47,11 +47,6 @@ public class QQEventHandler extends TextWebSocketHandler {
     @Value("${go-cqhttp.dir}")
     private String goCqHttpDir;
 
-    private static final Pattern PATTERN = Pattern.compile("(13[0-9]|14[01456879]|15[0-35-9]|16[2567]|17[0-8]|18[0-9]|19[0-35-9])\\d{8}");
-    private static final Pattern PATTERN2 = Pattern.compile("\\d{6}");
-    private static final Pattern PATTERN3 = Pattern.compile("青龙:(\\d+)");
-    private static final Pattern PATTERN4 = Pattern.compile("备注:(.*)");
-
     /**
      * socket 建立成功事件
      */

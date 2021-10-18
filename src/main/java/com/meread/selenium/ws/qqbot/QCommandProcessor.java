@@ -5,5 +5,5 @@ package com.meread.selenium.ws.qqbot;
  * @date 2021/10/17
  */
 public interface QCommandProcessor {
-    ProcessStatus process(long senderQQ, String content, QQAiFlow qqAiFlow);
+    void process(long senderQQ, String content, QQAiFlow qqAiFlow);
 }
