@@ -78,11 +78,19 @@ public class WSManager implements DisposableBean {
             Set<String> onlineUserTrackIds = socketSessionPool.keySet();
             Set<String> removeChromeSessionIds = new HashSet<>();
             for (MyChrome chrome : driverManager.getChromes().values()) {
-                if (chrome.getUserTrackId() != null && !onlineUserTrackIds.contains(chrome.getUserTrackId())) {
+                String userTrackId = chrome.getUserTrackId();
+                MyChromeClient client = driverManager.clients.get(userTrackId);
+                if (client != null && client.getLoginType() == LoginType.QQBOT) {
+                    continue;
+                }
+                if (userTrackId != null && !onlineUserTrackIds.contains(userTrackId)) {
                     removeChromeSessionIds.add(chrome.getChromeSessionId());
                 }
             }
             for (MyChromeClient client : driverManager.clients.values()) {
+                if (client.getLoginType() == LoginType.QQBOT) {
+                    continue;
+                }
                 if (client.getUserTrackId() != null && !onlineUserTrackIds.contains(client.getUserTrackId())) {
                     removeChromeSessionIds.add(client.getChromeSessionId());
                 }

@@ -37,7 +37,7 @@ public class ScheduleService {
     /**
      * 和grid同步chrome状态，清理失效的session，并移除本地缓存
      */
-    @Scheduled(initialDelay = 10000, fixedDelay = 2000)
+    @Scheduled(fixedDelay = 2000)
     public void heartbeat() {
         driverFactory.heartbeat();
     }

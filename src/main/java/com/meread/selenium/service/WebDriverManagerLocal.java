@@ -210,7 +210,6 @@ public class WebDriverManagerLocal extends BaseWebDriverManager {
             MyChrome myChrome = iterator.next().getValue();
             String sessionId = myChrome.getWebDriver().getSessionId().toString();
             if (sessionId.equals(removeChromeSessionId)) {
-                myChrome.setUserTrackId(null);
                 try {
                     //获取chrome的失效时间
                     long chromeExpireTime = myChrome.getExpireTime();
@@ -218,7 +217,6 @@ public class WebDriverManagerLocal extends BaseWebDriverManager {
                     //获取客户端的失效时间
                     String userTrackId = myChrome.getUserTrackId();
                     if (userTrackId != null) {
-                        clients.remove(userTrackId);
                         MyChromeClient client = clients.get(userTrackId);
                         if (client != null) {
                             clientExpireTime = client.getExpireTime();
@@ -258,6 +256,8 @@ public class WebDriverManagerLocal extends BaseWebDriverManager {
                         threadPoolTaskExecutor.execute(() -> quit(myChrome));
                         log.info("destroy chrome : " + sessionId);
                     }
+                    clients.remove(userTrackId);
+                    myChrome.setUserTrackId(null);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

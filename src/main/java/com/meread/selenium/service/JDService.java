@@ -1020,7 +1020,7 @@ public class JDService implements CommandLineRunner {
             }
         } finally {
             if (driver != null && driver.getSessionId() != null) {
-                driverFactory.releaseWebDriver(driver.getSessionId().toString(), false);
+                driverFactory.releaseWebDriver(driver.getSessionId().toString(), true);
             }
         }
 

@@ -217,7 +217,7 @@ public class BotService {
             }
         }
         if (select) {
-            sb.append("\n例子：\n青龙:1(单个)\n青龙:234(多个)\n\n请输入，以青龙:(英文冒号)开头");
+            sb.append("\n例子：\n青龙:1(单个)\n青龙:234(多个)\n\n请输入：");
         }
         return sb.toString();
     }
@@ -228,46 +228,46 @@ public class BotService {
             log.warn("webSocketSession not open");
             return;
         }
+        MyChromeClient myChromeClient = driverFactory.getCacheMyChromeClient(String.valueOf(senderQQ));
+        if (myChromeClient == null) {
+            sendMsgWithRetry(senderQQ, getNoChromeMsg());
+            return;
+        }
+        if (myChromeClient.isExpire()) {
+            sendMsgWithRetry(senderQQ, "超时了，请重新开始...");
+            return;
+        }
+        sendMsgWithRetry(senderQQ, "正在上传...");
         threadPoolTaskExecutor.execute(() -> {
-            MyChromeClient myChromeClient = driverFactory.getCacheMyChromeClient(String.valueOf(senderQQ));
-            if (myChromeClient == null) {
-                sendMsgWithRetry(senderQQ, getNoChromeMsg());
-            } else {
-                try {
-                    if (myChromeClient.isExpire()) {
-                        sendMsgWithRetry(senderQQ, "超时了，请重新开始...");
-                        return;
-                    }
-                    sendMsgWithRetry(senderQQ, "正在上传...");
-                    String phone = myChromeClient.getTrackPhone();
-                    if (StringUtils.isEmpty(phone)) {
-                        sendMsgWithRetry(senderQQ, "你还没有输入手机号");
-                        return;
-                    }
-                    String remark = myChromeClient.getTrackRemark();
-                    if (StringUtils.isEmpty(remark)) {
-                        sendMsgWithRetry(senderQQ, "你还没有输入备注");
-                        return;
-                    }
-                    String ck = myChromeClient.getTrackCK();
-                    if (StringUtils.isEmpty(ck)) {
-                        sendMsgWithRetry(senderQQ, "你还没有获取到CK");
-                        return;
-                    }
-                    int qlUploadDirect = 1;
-                    JSONObject jsonObject = jdService.uploadQingLong(chooseQLId, phone, remark, ck, myChromeClient.getChromeSessionId(), qlUploadDirect);
-                    String html = jsonObject.getString("html");
-                    log.info(jsonObject.toJSONString());
-                    if (!StringUtils.isEmpty(html)) {
-                        html = html.replaceAll("<br/>", "\n");
-                        sendMsgWithRetry(senderQQ, html);
-                    }
-                    if (jsonObject.getIntValue("status") > 0) {
-                        qa.setStatus(ProcessStatus.FINISH);
-                    }
-                } finally {
-                    driverFactory.releaseWebDriver(myChromeClient.getChromeSessionId(), false);
+            try {
+                String phone = myChromeClient.getTrackPhone();
+                if (StringUtils.isEmpty(phone)) {
+                    sendMsgWithRetry(senderQQ, "你还没有输入手机号");
+                    return;
                 }
+                String remark = myChromeClient.getTrackRemark();
+                if (StringUtils.isEmpty(remark)) {
+                    sendMsgWithRetry(senderQQ, "你还没有输入备注");
+                    return;
+                }
+                String ck = myChromeClient.getTrackCK();
+                if (StringUtils.isEmpty(ck)) {
+                    sendMsgWithRetry(senderQQ, "你还没有获取到CK");
+                    return;
+                }
+                int qlUploadDirect = 1;
+                JSONObject jsonObject = jdService.uploadQingLong(chooseQLId, phone, remark, ck, myChromeClient.getChromeSessionId(), qlUploadDirect);
+                String html = jsonObject.getString("html");
+                log.info(jsonObject.toJSONString());
+                if (!StringUtils.isEmpty(html)) {
+                    html = html.replaceAll("<br/>", "\n");
+                    sendMsgWithRetry(senderQQ, html);
+                }
+                if (jsonObject.getIntValue("status") > 0) {
+                    qa.setStatus(ProcessStatus.FINISH);
+                }
+            } finally {
+                driverFactory.releaseWebDriver(myChromeClient.getChromeSessionId(), false);
             }
         });
     }

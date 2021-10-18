@@ -276,7 +276,7 @@ public class WebDriverManagerSelenoid extends BaseWebDriverManager {
     @Override
     public void createChrome() {
         ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-        int create = CAPACITY - chromes.size();
+        int create = (CAPACITY - chromes.size()) / 2;
         CountDownLatch cdl = new CountDownLatch(create);
         for (int i = 0; i < create; i++) {
             executorService.execute(() -> {
@@ -354,20 +354,19 @@ public class WebDriverManagerSelenoid extends BaseWebDriverManager {
                     String userTrackId = myChrome.getUserTrackId();
                     if (userTrackId != null) {
                         MyChromeClient client = clients.get(userTrackId);
-                        clientExpireTime = client.getExpireTime();
+                        if (client != null) {
+                            clientExpireTime = client.getExpireTime();
+                        }
                     }
+                    long chromeRemain = clientExpireTime <= 0 ? 0 : (chromeExpireTime - clientExpireTime) / 1000;
+                    log.info("chrome剩余时间" + chromeRemain + " 配置的操作时限" + opTimeout);
                     //chrome的存活时间不够一个opTime时间，则chrome不退出，只清理客户端引用
-                    if ((chromeExpireTime - clientExpireTime) / 1000 > opTimeout && !quit) {
-                        myChrome.setUserTrackId(null);
-                        iterator.remove();
-                        if (userTrackId != null) {
-                            clients.remove(userTrackId);
-                            if (wsManager.getLastPageStatus().size() > 0) {
-                                wsManager.getLastPageStatus().remove(userTrackId);
-                            }
-                            if (wsManager.socketSessionPool.size() > 0) {
-                                wsManager.socketSessionPool.remove(userTrackId);
-                            }
+                    if (chromeRemain > opTimeout && !quit) {
+                        if (wsManager.getLastPageStatus().size() > 0 && userTrackId != null) {
+                            wsManager.getLastPageStatus().remove(userTrackId);
+                        }
+                        if (wsManager.socketSessionPool.size() > 0 && userTrackId != null) {
+                            wsManager.socketSessionPool.remove(userTrackId);
                         }
                         WebStorage webStorage = (WebStorage) new Augmenter().augment(myChrome.getWebDriver());
                         if (webStorage != null) {
@@ -383,11 +382,18 @@ public class WebDriverManagerSelenoid extends BaseWebDriverManager {
                         myChrome.getWebDriver().manage().deleteAllCookies();
                         log.info("clean chrome binding: " + sessionId);
                     } else {
-                        clients.remove(userTrackId);
+                        if (wsManager.getLastPageStatus().size() > 0 && userTrackId != null) {
+                            wsManager.getLastPageStatus().remove(userTrackId);
+                        }
+                        if (wsManager.socketSessionPool.size() > 0 && userTrackId != null) {
+                            wsManager.socketSessionPool.remove(userTrackId);
+                        }
                         iterator.remove();
                         threadPoolTaskExecutor.execute(() -> myChrome.getWebDriver().quit());
                         log.info("destroy chrome : " + sessionId);
                     }
+                    clients.remove(userTrackId);
+                    myChrome.setUserTrackId(null);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
